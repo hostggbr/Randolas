@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Randolas Keys</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111 url('banner.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+    #key-box {
+      margin-top: 50px;
+      font-size: 1.2em;
+      background: rgba(0,0,0,0.6);
+      display: inline-block;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      background: cyan;
+      color: #111;
+      font-weight: bold;
+      margin: 5px;
+    }
+
+    /* 🔔 Toast container */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9999;
+    }
+
+    /* 🔔 Toast base */
+    .toast {
+      min-width: 260px;
+      max-width: 320px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      animation: slideIn 0.4s ease, fadeOut 0.5s ease 3.5s forwards;
+    }
+
+    /* Tipos */
+    .toast.success { background: #28a745; }
+    .toast.error { background: #dc3545; }
+    .toast.warn { background: #ffc107; color: #111; }
+
+    /* Ícone */
+    .toast svg {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    /* Animações */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(100%); }
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.6);
+      z-index: 10000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #222;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      width: 320px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+      animation: zoomIn 0.3s ease;
+    }
+    .modal-content h2 {
+      margin: 0 0 15px;
+      color: cyan;
+    }
+    .modal-content input {
+      width: 80%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 1em;
+    }
+    .modal-content button {
+      padding: 8px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-confirm { background: #28a745; color: #fff; }
+    .btn-cancel { background: #dc3545; color: #fff; }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-weight: bold;
+    }
+    .footer a {
+      color: #ffffff;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .footer a:hover {
+      color: #696969;
+
+    }
+  </style>
+</head>
+<body>
+  <h1>🔑 Randolas Key Generator</h1>
+  <p id="keys-left">Chaves restantes: 80</p>
+  <div id="key-box">
+    <button onclick="generateKey()">🔑 Gerar Key</button>
+    <button onclick="openModal()">🔄 Resetar</button>
+    <button onclick="downloadLoader()">📂 Baixar Loader</button>
+    <p id="result"></p>
+  </div>
+
+  <!-- Container para notificações -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Modal de senha -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2>🔐 Resetar Keys</h2>
+      <p>Digite a senha de administrador:</p>
+      <input type="password" id="adminPass" placeholder="Senha">
+      <br>
+      <button class="btn-confirm" onclick="confirmReset()">Confirmar</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+
+<script>
+  const ADMIN_PASSWORD = "developer"; // 🔐 Definir Senha de Administrator
+
+  const keys = ["tPgDSD-YmIBwf-sd6emp-KkfoDn-AlsT9x-tFOY3F","SVHMIa-1ZoVd3-YNCfPl-W4vNJB-ZwlwKo-jEmFOT","M4CDue-hULPzw-mWHNTx-OTtj4T-1iO3hY-oQADjx","a6vwQP-W22IQB-4JgRhp-5gjJ5X-zprkU7-2lHp0B","CutPaR-rCPhre-YkRm9y-RzzvHg-OGwnXK-br4kQp","QrERYx-m4iCCm-8uPzNL-6oOTNM-bWd8vs-PSDHqz","9AxDfY-plfpZV-ZI3mzM-wx5Z46-9zuA4a-UbNuew","0KL5UG-Mkf9HH-KEy6FF-pvTtkP-KzpZFH-o2oye6","6M4xnM-udu0yN-WMieDq-WGOuo3-pyyRjK-2gi83z","Nq1FPB-5Cd6Fz-0DqQLa-wNdW6I-jD9sFs-SUD6Py","lfd7JC-XDKWQD-7Je7zs-4Qy8e3-biuaZt-hrVj7w","kqP8UC-SCIwmb-K6BRIb-Q0qqK8-sW8J0R-CyshvC","z6e7Hu-N35EGE-i4kndX-epeCk4-fVBEB9-Jza1fH","1Sjma8-I5NPex-ZxZ4Ug-FrI0Pc-6qN8JQ-7YRTRg","ZT4ifc-QhiEG7-hWULzN-Lk7HtK-4ineuW-T8pu7C","yHwljK-PyddUG-86lejg-IYPLas-jMxpVy-nrMBvp","OBubip-wUONbC-E3r9D6-hUVAJo-xHcPSs-KcG13j","lJgVr3-K6yCha-QaLmyl-Jk0EFD-Rq9roU-T72f98","QEwcV0-sLH9JM-x984gA-KjHjjI-kSdjfb-x5jjq5","ySXy4q-6POkXF-XYHzRE-NdimNA-FjQpb2-mUymLh","IelPDA-V0jnvj-Tu1bsb-Xpcax9-E6P2yz-aQNaSJ","GogHkU-ZbzyL6-njPwWC-tt0IwD-9jm3bU-Tl7Kpi","g1NKsU-PYpTaa-6Tnymp-ZLpC7O-igqVla-8YjVvn","FtCoky-tVLnfR-B2up3t-QroSlF-tD5Yru-MmFbKl","Tz95w3-WXXzt5-7Q8hLn-reudD3-4feu21-qrfz18","QVQtlM-JiOh70-2aQXB8-kG7GQL-NHRgQw-S70N24","eqoaWr-0fg7kL-KAXTF1-vVmyRq-gmQIbe-IJumiZ","rNNErR-iVX5Nw-oW1UJf-Znkr01-mvBz83-mCmHSx","8P7sFf-KPQMyU-SSaSTL-E7tx7G-BtEE9Q-ZIJk4a","J2PrNG-4K7v2G-1Fbw2w-JYSkn1-PzYQyt-vhOvjW","K300le-x4yos8-p7xn1f-4P48KG-m8y5kc-IWaQoJ","aeEO20-RT2I9K-9mFVc6-ncfOu3-EbMBXq-FpYt5L","QqAYD3-D9jTnZ-ueV2C1-2ugrhS-EJoJVy-nsM2LJ","TxGmgx-7y5p7D-yWAMvJ-aE35Q3-9GVnrV-zBvPT4","sjkcLw-n7FATo-UcP2BF-WDuzF6-29LOEW-KvzA8S","BOuq5M-hOiZNq-AjxUJb-HGWpNd-M918Kl-OW9njQ","jYDacB-wvm3ZS-nqSX1m-raCQPY-FIPCeP-6aLDsk","vMslMo-MhtxwQ-uXT77N-0DVpnS-jY5VTu-BkcNmx","AIN8Uj-CN0yA0-0Flcyh-5fD9j1-zs6eR9-RrI9nc","VhzcFO-6O3YmD-CiGj9y-eMm0h2-sFDFou-yJwNkT","8gLHYG-KTB42l-1zQSbx-kEZmQI-n45cWN-26Im9o","tMCxor-tGLmiR-qctg2F-JF4Mqb-AUJrs0-0rOiwv","NcwhCe-of0r9P-k15Kzg-T3IeJT-cu4ktW-PP9Mp3","E2Teha-BG8DyH-x94DDt-UBS7UI-tfmdUi-0ZnUHY","PZpVnS-m0aNE4-kcT2dC-1Y75CK-U0FhfA-jHbmBQ","gPOLs9-THWEpp-7SL7K4-uxh2QD-JPPKCS-dbyC8W","ZogT5j-neOirS-spqgKN-uJcfNj-WRAY4i-vLxgaz","9EQ7sv-hKWcuA-Y30l9y-3QPiTK-A1FpZI-VnrpPd","P9m7Zs-3FHWyA-4NEA80-nsIlbt-OwkGqL-1FIEYN","mM2jP1-0PRAfq-oeAmBm-e396eV-0Dqh3r-JrdHKv","0GZvwW-ytT4xK-7rqR04-y6Giqs-mPw6ZX-36QRwh","3NozSv-2x2eWD-3bQ0FI-D9609v-mDruWg-Y6ot5a","lPVbRo-vm8w5t-vt5yHY-KLNWyx-3XtxVL-LNiWd6","TOY0WO-Sz0PIg-YSu4Zs-ywM2LH-Jj6zev-RrfrCX","JvsQFQ-FO2lV0-pW8G6S-3YDiZ6-nGfIgp-c6ZmKq","CzDnRA-cHBqx6-vUh3pU-6BQ412-E8Wm4s-P8ec6o","0OevFM-xR5gZv-MQFt1E-Q9KqJ4-cUiGCq-WWAmBf","nx5VaP-cwhyhD-7S0Uxq-jgXW9b-PVSHrR-KyzKlE","PhKU7p-UwvDRI-VTmIPl-fqK4Q8-HzEp6Y-XdgCb3","u9vef0-Q16C1I-ziQDk1-t5zd2S-ZeizTc-I85cPr","mF1z5I-JRm1ci-hU4iXn-U4WYnU-obutq6-UjVMpp","nBoqFY-JNYgrm-XEPgTC-Ih1min-kfmLAx-utjHxH","npnIf6-MpDUcd-UKH5Qe-ufQAs2-chpYQx-JZNGaN","ngdD4t-iTTydv-tL1PtU-BNSpTS-iFqktc-TWJpoW","teDVVz-GFy6ME-tgQwFV-SP19f1-jH336L-TuA8id","Q0gpNt-qLcolo-sKwq5E-fGErve-EJaeA2-fpPFyf","zx1wKi-44nWr4-6yDRog-nMfOyR-LSSQfd-StSTNi","HvpWOR-u4nLgV-TF7LdQ-9ap33J-51aKEF-3RMvoY","IyQytS-BbIIiI-Vt8MMs-ZlwrE6-LJE5xm-HqzVG7","QrWTCI-LV44op-PXsrkb-TiTSS0-J6ixRU-UHd4nh","CgMKaN-AmasdA-n0XqCK-VuCpNt-cyVJOF-wmQsXs","DuEjMh-6mBuSo-0r0IEn-sHGGlm-e9B2uT-Trqi3l","ZKMmGb-9SS1AD-6U2JAu-uYBE5z-i9TTdX-sHVe0D","savQRL-AUHJwx-IYn8mZ-bQ94oH-WIZHrr-9QP0kq","uC6O4w-NtT4DI-bjjcVl-hxT3kl-5Q3Yhz-y5WuE1","0IqvGz-ZYsIt0-Yo47Ey-GWQ9wC-wMElhc-Uh8GIM","K8SSUb-WkizbK-FvmnMz-RGy2xG-5wbc4j-U6axWH","LXBQs6-pvcZ5A-zo3Myh-Hm6iDi-XCEuo2-w5uZij","EvGyr4-bPDisZ-WggP93-kTIgF1-3Pmiqr-gr4jeC","8SCgHa-mqdM5T-wGxWas-7QeFhV-spKNIR-41jh"]; // Keys Randolas External
+  let used = JSON.parse(localStorage.getItem("usedKeys") || "[]");
+  let lastTime = parseInt(localStorage.getItem("lastTime") || "0");
+
+  function generateKey() {
+    const now = Date.now();
+    if (now - lastTime < 360000) {
+      showToast("⏳ Espere 1 hora para gerar outra key.", "warn");
+      return;
+    }
+    if (used.length >= keys.length) {
+      document.getElementById("result").innerText = "⚠️ Todas as keys foram usadas.";
+      showToast("Todas as keys foram usadas.", "error");
+      return;
+    }
+    let key;
+    do {
+      key = keys[Math.floor(Math.random() * keys.length)];
+    } while (used.includes(key));
+
+    used.push(key);
+    lastTime = now;
+    localStorage.setItem("usedKeys", JSON.stringify(used));
+    localStorage.setItem("lastTime", lastTime);
+
+    document.getElementById("result").innerHTML = `Sua key: <span style="color:#28a745; font-weight:bold;">${key}</span>`;
+    document.getElementById("keys-left").innerText = "Chaves restantes: " + (keys.length - used.length);
+
+    showToast("Key gerada com sucesso!", "success");
+  }
+
+  function downloadLoader() {
+  const loaderUrl = "randolas.exe"; // link Download
+  const a = document.createElement("a");
+  a.href = loaderUrl;
+  a.download = "External.exe"; // Name Download 
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  showToast("Baixando o loader!", "success");
+}
+
+
+  // Abre modal
+  function openModal() {
+    document.getElementById("modal").classList.add("active");
+    document.getElementById("adminPass").value = "";
+  }
+  // Fecha modal
+  function closeModal() {
+    document.getElementById("modal").classList.remove("active");
+  }
+
+  // Confirmar reset
+  function confirmReset() {
+    const pass = document.getElementById("adminPass").value;
+    if (pass !== ADMIN_PASSWORD) {
+      showToast("Senha incorreta. Ação negada.", "error");
+      closeModal();
+      return;
+    }
+
+    localStorage.removeItem("usedKeys");
+    localStorage.removeItem("lastTime");
+    used = [];
+    lastTime = 0;
+    document.getElementById("result").innerText = "✅ Reset realizado!";
+    document.getElementById("keys-left").innerText = "Chaves restantes: " + keys.length;
+
+    showToast("Reset feito com sucesso!", "success");
+    closeModal();
+  }
+
+  // 🔔 Função para exibir toasts com ícones
+  function showToast(message, type = "success") {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+
+    // Definir ícone SVG por tipo
+    let icon = "";
+    if (type === "success") {
+      icon = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>`;
+    } else if (type === "error") {
+      icon = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    } else if (type === "warn") {
+      icon = `<svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><path d="M10.29 3.86L1.82 18a1 1 0 0 0 .86 1.5h18.64a1 1 0 0 0 .86-1.5L13.71 3.86a1 1 0 0 0-1.72 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+    }
+
+    toast.innerHTML = icon + message;
+
+    container.appendChild(toast);
+
+    // Remove após animação
+    setTimeout(() => {
+      toast.remove();
+    }, 4000);
+  }
+</script>
+
+    <footer class="footer">
+        <p>
+          <a href="https://discord.gg/6pPQPmGVGT" target="_blank">🔧 - Desenvolvido por 7'Ninja .</a>
+        </p>
+      </footer>
+    
+<script>
+
+    // Desativa clique direito - Anti Cloner 
+    document.addEventListener("contextmenu", e => e.preventDefault());
+  
+  // Bloqueia teclas comuns de devtools
+  document.addEventListener("keydown", function(e) {
+    if (
+      e.key === "F12" ||
+      (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+      (e.ctrlKey && (e.key === "U" || e.key === "u"))
+    ) {
+      e.preventDefault();
+      console.warn("Ação bloqueada.");
+    }
+  });
+
+  // Detecta DevTools aberto por atraso
+  setInterval(() => {
+    const start = performance.now();
+    debugger;
+    const end = performance.now();
+    if (end - start > 100) {
+      console.warn("DevTools detectado (tempo). Ação bloqueada.");
+    }
+  }, 1000);
+
+  // Detecta DevTools pela manipulação do console
+  (function() {
+    const element = new Image();
+    Object.defineProperty(element, 'id', {
+      get: function () {
+        console.warn("DevTools detectado (console). Ação bloqueada.");
+      }
+    });
+    console.log(element);
+  })();
+
+</script>
+
+</body>
+</html>
